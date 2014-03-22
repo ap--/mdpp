@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+"""One file markdown preprocessor"""
+import re
+import shlex
+
+__version__ = "0.0.1"
+
+
+# PARSING FUNCTIONS
+#-------------------
+def includecode(language, filename):
+    """includes a file"""
+    with open(filename, 'r') as incf:
+        data = incf.read()
+    return ("~~~ {.%s}\n%s~~~\n") % (language, data)
+
+
+def includecodesnippet(language, filename, snippet):
+    '''includes a part of a file sourrounded by
+    """<name>""" ... """</name>"""
+    '''
+    with open(filename, 'r') as incf:
+        data = incf.read()
+    match = re.search('"""<%s>"""(.*?)"""</%s>"""' % (snippet, snippet),
+                  data, flags=re.DOTALL)
+    try:
+        data = match.group(1)
+    except:
+        data = "\n#snippet %s not found.\n" % snippet
+    return ("~~~ {.%s}%s~~~\n") % (language, data)
+
+
+def optionalfigure(filename, caption):
+    """includes a figure with caption"""
+    return "![%s](%s)\n" % (caption, filename)
+
+
+# PARSING DICT
+#--------------
+CMDS = {'.INCLUDECODE': includecode,
+        '.INCLUDECODESNIPPET': includecodesnippet,
+        '.OPTIONALFIGURE': optionalfigure,
+       }
+
+
+class Preprocessor(object):
+    """Looks for matching strings and replaces them in the markdown file"""
+
+    def __init__(self, mdfile, commandset=CMDS):
+        """filename: mardown file
+        commandset: modify this to include only a subset of commands
+        """
+        self.data = mdfile.read()
+        self.cmds = commandset
+
+    def get_pp_locations(self):
+        """Picks all annotations that need to be processed later."""
+        cmdlist = []
+        for match in re.finditer("<!--@(.*?)@-->", self.data, flags=re.DOTALL):
+            cmdlist.append((match.span(), match.group(1)))
+        return cmdlist
+
+    def process_command(self, cmd):
+        """converts the command with the converting instructions"""
+        arguments = shlex.split(cmd)
+        cname, cargs = arguments[0], arguments[1:]
+        try:
+            return self.cmds[cname](*cargs)
+        except KeyError:
+            return None
+
+    def process(self):
+        """processes the file and converts commands that it understands"""
+        data = self.data[:]
+        rev_output = []
+        for (low, high), cmd in sorted(self.get_pp_locations(), reverse=True):
+            repl = self.process_command(cmd)
+            if repl is None:
+                rev_output.append(data[low:])
+            else:
+                rev_output.append(data[high:])
+                rev_output.append(repl)
+            data = data[:low]
+        rev_output.append(data)
+        return "".join(rev_output[::-1])
+
+
+if __name__ == "__main__":
+
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mdfile", type=argparse.FileType('r'), nargs="?")
+    parser.add_argument('--without', type=str,
+            help="do not parse these commands; comma seperated string", default='')
+    parser.add_argument('--version', action='store_true', help="print version")
+    parser.add_argument('--list', action='store_true', help="list implemented commands")
+    args = parser.parse_args()
+
+    if args.version:
+        print "mdpp-%s" % __version__
+    elif args.list:
+        print "mdpp: implemented commands\n"
+        for cmdname, cmdfunc in CMDS.items():
+            print "<!--@ %s %s @-->\n%s\n" % (cmdname,
+                " ".join(cmdfunc.func_code.co_varnames[:cmdfunc.func_code.co_argcount]),
+                cmdfunc.__doc__)
+    elif args.mdfile:
+        for remove in args.without.split(','):
+            CMDS.pop(remove, None)
+        PP = Preprocessor(args.mdfile, commandset=CMDS)
+        print PP.process()
+    else:
+        parser.print_help()
