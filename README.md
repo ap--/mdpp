@@ -2,11 +2,12 @@
 
 I created this markdown preprocessor, because I didn't like 
 [gpp](http://en.nothingisreal.com/wiki/GPP) and it was quicker to write this
-than looking for something else.
+than looking for something else, or implementing my favorite syntax in other
+preprocessors.
 
-If you're looking for something cleaner, check out 
-[Markdown-PP](https://github.com/jreese/markdown-pp).
-
+If you're looking for alternatives, check out
+[Markdown-PP](https://github.com/jreese/markdown-pp) or
+[zang](https://github.com/32bitkid/zang).
 
 ## mdpp ##
 
