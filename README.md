@@ -13,10 +13,10 @@ If you're looking for alternatives, check out
 
 It's one file, and really dead simple. Strings are parsed in the following way:
 
-  * markdown **\<\!--@** and **@--\>** are used to encapsulate the commands
-      ~~~
-      <!--@ COMANDNAME ARGUMENTS @-->
-      ~~~
+  * markdown **"\<\!--@"** and **"@--\>"** are used to encapsulate the commands
+    ```    
+    <!--@ COMANDNAME ARGUMENTS @-->
+    ```
   * In python it looks up _COMANDNAME_ in a _dict_ which returns a function 
     that does something with _ARGUMENTS_ and returns a string.
 
