@@ -16,12 +16,15 @@ def includecode(language, filename):
 
 
 def includecodesnippet(language, filename, snippet):
-    '''includes a part of a file sourrounded by
-    """<name>""" ... """</name>"""
-    '''
+    """includes a part of a file sourrounded by
+    # <name>
+    ...
+    # </name>
+    """
     with open(filename, 'r') as incf:
         data = incf.read()
-    match = re.search('"""<%s>"""(.*?)"""</%s>"""' % (snippet, snippet),
+    match = re.search(('"""<%(tag)s>"""(.*?)"""</%(tag)s>"""|'
+                       '#\s*<%(tag)s>\s*(.*?)#\s*</%(tag)s>\s*') % {'tag': snippet},
                   data, flags=re.DOTALL)
     try:
         data = match.group(1)
