@@ -90,27 +90,28 @@ CMDSET = {'.INCLUDECODE': includecode,
 if __name__ == "__main__":
 
     import argparse
+    import inspect
 
     parser = argparse.ArgumentParser()
     parser.add_argument("mdfile", type=argparse.FileType('r'), nargs="?")
-    parser.add_argument('--without', type=str,
-            help="do not parse these commands; comma seperated string", default='')
+    parser.add_argument('--list', action='store_true', help="list commands")
     parser.add_argument('--version', action='store_true', help="print version")
-    parser.add_argument('--list', action='store_true', help="list implemented commands")
+    parser.add_argument('--without', type=str, action="append", default=[],
+                                     help="don't parse command")
+    parser.add_argument('--clean', action='store_true',
+                                   help="remove unparsed tags")
     args = parser.parse_args()
 
     if args.version:
         print "mdpp-%s" % __version__
     elif args.list:
-        print "mdpp: implemented commands\n"
-        for cmdname, cmdfunc in CMDS.items():
-            print "<!--@ %s %s @-->\n%s\n" % (cmdname,
-                " ".join(cmdfunc.func_code.co_varnames[:cmdfunc.func_code.co_argcount]),
-                cmdfunc.__doc__)
+        for name, fun in CMDSET.items():
+            print "<!--@", name, " ".join(inspect.getargspec(fun).args), "@-->"
+            print '   ', fun.__doc__
     elif args.mdfile:
-        for remove in args.without.split(','):
-            CMDS.pop(remove, None)
-        PP = Preprocessor(args.mdfile, commandset=CMDS)
-        print PP.process()
+        print args.without
+        for remove in args.without:
+            CMDSET.pop(remove, None)
+        print Preprocessor(args.mdfile, commandset=CMDSET).process(args.clean)
     else:
         parser.print_help()
