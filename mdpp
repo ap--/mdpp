@@ -6,6 +6,43 @@ import shlex
 __version__ = "0.0.1"
 
 
+# PPREPROCESSOR
+#--------------
+class Preprocessor(object):
+    """Looks for matching strings and replaces them in the markdown file"""
+
+    def __init__(self, mdfile, commandset=None):
+        """mdfile: markdown file handle
+        commandset: modify this to include only a subset of commands
+        """
+        self.data = mdfile.read()
+        self.cmds = commandset if commandset is not None else CMDSET
+
+    def iterppitems(self):
+        """Iterates over all preprocessor ((start, stop), statement) tuples."""
+        for match in re.finditer("<!--@(.*?)@-->", self.data, flags=re.DOTALL):
+            yield match.span(), match.group(1)
+
+    def process(self, remove_unkown=False):
+        """processes the file and converts commands that it understands"""
+        data = self.data
+        reversed_output = []
+        for (low, high), cmd in sorted(self.iterppitems(), reverse=True):
+            ppcmd = shlex.split(cmd)
+            cname, cargs = ppcmd[0] if ppcmd else None, ppcmd[1:]
+            try:
+                substitute = self.cmds[cname](*cargs)
+            except KeyError:
+                idx = low if not remove_unkown else high
+                reversed_output.append(data[idx:])
+            else:
+                reversed_output.append(data[high:])
+                reversed_output.append(substitute)
+            data = data[:low]
+        reversed_output.append(data)
+        return "".join(reversed(reversed_output))
+
+
 # PARSING FUNCTIONS
 #-------------------
 def includecode(language, filename):
@@ -45,47 +82,6 @@ CMDS = {'.INCLUDECODE': includecode,
         '.OPTIONALFIGURE': optionalfigure,
        }
 
-
-class Preprocessor(object):
-    """Looks for matching strings and replaces them in the markdown file"""
-
-    def __init__(self, mdfile, commandset=CMDS):
-        """filename: mardown file
-        commandset: modify this to include only a subset of commands
-        """
-        self.data = mdfile.read()
-        self.cmds = commandset
-
-    def get_pp_locations(self):
-        """Picks all annotations that need to be processed later."""
-        cmdlist = []
-        for match in re.finditer("<!--@(.*?)@-->", self.data, flags=re.DOTALL):
-            cmdlist.append((match.span(), match.group(1)))
-        return cmdlist
-
-    def process_command(self, cmd):
-        """converts the command with the converting instructions"""
-        arguments = shlex.split(cmd)
-        cname, cargs = arguments[0], arguments[1:]
-        try:
-            return self.cmds[cname](*cargs)
-        except KeyError:
-            return None
-
-    def process(self):
-        """processes the file and converts commands that it understands"""
-        data = self.data[:]
-        rev_output = []
-        for (low, high), cmd in sorted(self.get_pp_locations(), reverse=True):
-            repl = self.process_command(cmd)
-            if repl is None:
-                rev_output.append(data[low:])
-            else:
-                rev_output.append(data[high:])
-                rev_output.append(repl)
-            data = data[:low]
-        rev_output.append(data)
-        return "".join(rev_output[::-1])
 
 
 if __name__ == "__main__":
