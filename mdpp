@@ -82,11 +82,9 @@ def optionalfigure(filename, caption):
 
 # PARSING DICT
 #--------------
-CMDS = {'.INCLUDECODE': includecode,
-        '.INCLUDECODESNIPPET': includecodesnippet,
-        '.OPTIONALFIGURE': optionalfigure,
-       }
-
+CMDSET = {'.INCLUDECODE': includecode,
+          '.INCLUDECODESNIPPET': includecodesnippet,
+          '.OPTIONALFIGURE': optionalfigure}
 
 
 if __name__ == "__main__":
