@@ -58,16 +58,21 @@ def includecodesnippet(language, filename, snippet):
     ...
     # </name>
     """
-    with open(filename, 'r') as incf:
-        data = incf.read()
-    match = re.search(('"""<%(tag)s>"""(.*?)"""</%(tag)s>"""|'
-                       '#\s*<%(tag)s>\s*(.*?)#\s*</%(tag)s>\s*') % {'tag': snippet},
-                  data, flags=re.DOTALL)
+    tagpattern = ('"""<%(tag)s>"""(.*?)"""</%(tag)s>"""'
+                  '|#\s*<%(tag)s>(.*?)#\s*</%(tag)s>') % {'tag': snippet}
     try:
-        data = match.group(1)
-    except:
-        data = "\n#snippet %s not found.\n" % snippet
-    return ("~~~ {.%s}%s~~~\n") % (language, data)
+        with open(filename, 'r') as codefile:
+            data = codefile.read()
+    except IOError:
+        output = "\n# File: '%s' not found.\n" % filename
+    else:
+        match = re.search(tagpattern, data, flags=re.DOTALL)
+        if match is None:
+            output = ("\n# File '%s':"
+                      " Snippet '%s' not found.\n") % (filename, snippet)
+        else:
+            output = match.group(1) or match.group(2)
+    return ("~~~ {.%s}%s~~~\n") % (language, output)
 
 
 def optionalfigure(filename, caption):
