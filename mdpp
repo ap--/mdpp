@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """One file markdown preprocessor"""
+from __future__ import print_function
 import re
 import shlex
 
@@ -103,15 +104,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.version:
-        print "mdpp-%s" % __version__
+        print("mdpp-%s" % __version__)
     elif args.list:
-        for name, fun in CMDSET.items():
-            print "<!--@", name, " ".join(inspect.getargspec(fun).args), "@-->"
-            print '   ', fun.__doc__
+        for cn, fun in CMDSET.items():
+            print("<!--@", cn, " ".join(inspect.getargspec(fun).args), "@-->")
+            print('   ', fun.__doc__)
     elif args.mdfile:
-        print args.without
         for remove in args.without:
             CMDSET.pop(remove, None)
-        print Preprocessor(args.mdfile, commandset=CMDSET).process(args.clean)
+        print(Preprocessor(args.mdfile, commandset=CMDSET).process(args.clean))
     else:
         parser.print_help()
