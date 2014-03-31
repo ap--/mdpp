@@ -32,4 +32,20 @@ You can exclude commands by specifying
 ./mdpp --without .INCLUDECODE,.OPTIONALFIGURE myfile.md
 ~~~
 
+Piping:
 
+~~~ {.bash}
+cat example.md | ./mdpp -
+~~~
+
+Listing available commands:
+
+~~~ {.bash}
+./mdpp --list
+~~~
+
+Remove unknown commands from code:
+
+~~~ {.bash}
+./mdpp --clean
+~~~
