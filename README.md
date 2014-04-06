@@ -29,7 +29,7 @@ Just run
 You can exclude commands by specifying 
 
 ~~~ {.bash}
-./mdpp --without .INCLUDECODE,.OPTIONALFIGURE myfile.md
+./mdpp --without .INCLUDECODE --without .OPTIONALFIGURE myfile.md
 ~~~
 
 Piping:
