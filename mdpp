@@ -80,12 +80,16 @@ def optionalfigure(filename, caption):
     """includes a figure with caption"""
     return "![%s](%s)\n" % (caption, filename)
 
+def optionaltext(text):
+    """includes text"""
+    return text
 
 # PARSING DICT
 #--------------
 CMDSET = {'.INCLUDECODE': includecode,
           '.INCLUDECODESNIPPET': includecodesnippet,
-          '.OPTIONALFIGURE': optionalfigure}
+          '.OPTIONALFIGURE': optionalfigure,
+          '.OPTIONALTEXT': optionaltext}
 
 
 if __name__ == "__main__":
